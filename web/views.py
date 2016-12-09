@@ -40,12 +40,26 @@ def session_creation(request, mem_image, session_id):
     # Get some vars
     new_session = db.get_session(session_id)
     file_hash = False
+    use_gi = False
+    gi_path = ''
+
     if 'description' in request.POST:
         new_session['session_description'] = request.POST['description']
     if 'plugin_path' in request.POST:
         new_session['plugin_path'] = request.POST['plugin_path']
     if 'file_hash' in request.POST:
         file_hash = True
+    if 'sess_os' in request.POST:
+        sess_os = request.POST['sess_os']
+    if 'use_gi' in request.POST:
+        logger.debug('Using GoldenImage for Image')
+        new_session['use_gi'] = 'True'
+        new_session['gi_path'] = gi_path
+        use_gi = True
+    else:
+        new_session['use_gi'] = 'False' 
+        new_session['gi_path'] = ''      
+
     # Check for mem file
     if not os.path.exists(mem_image):
         logger.error('Unable to find an image file at {0}'.format(mem_image))
@@ -79,13 +93,42 @@ def session_creation(request, mem_image, session_id):
         # Update the status
         new_session['status'] = 'Detecting Profile'
         db.update_session(session_id, new_session)
-        # Doesnt support json at the moment
-        kdbg_results = vol_int.run_plugin('kdbgscan', output_style='text')
-        lines = kdbg_results['rows'][0][0]
+
         profiles = []
-        for line in lines.split('\n'):
-            if 'Profile suggestion' in line:
-                profiles.append(line.split(':')[1].strip())
+
+        if 'Win' in sess_os:                   	
+            kdbg_results = vol_int.run_plugin('kdbgscan', False, '', output_style='text')
+            lines = kdbg_results['rows'][0][0]
+            print "kdbglines: "
+            print lines
+            for line in lines.split('\n'):
+                if 'Profile suggestion' in line:
+                    profiles.append(line.split(':')[1].strip())
+
+        elif 'OSX' in sess_os:
+            kdbg_results = vol_int.run_plugin('mac_get_profile', False, '', output_style='text')
+            print "running mac_get_profile"
+            lines = kdbg_results['rows'][0][0]
+            print "kdbglines: "
+            print lines
+            for line in lines.split('\n'):
+                if 'Mac' in line:
+                    print 'profile: ' + line.split(' ')[0]
+                    profiles.append(line.split(' ')[0].strip())
+
+        elif 'Linux' in sess_os:
+            kdbg_results = vol_int.run_plugin('linux_get_profile', False, '', output_style='text')
+            print "running linux_get_profile"
+            lines = kdbg_results['rows'][0][0]
+            print "kdbglines: "
+            print lines
+            for line in lines.split('\n'):
+                if 'Linux' in line:
+                    print 'profile: ' + line.split(' ')[0]
+                    profiles.append(line.split(' ')[0].strip())
+        else:
+            logger.error('Unable to assign an operating system')
+
         if len(profiles) == 0:
             logger.error('Unable to find a valid profile with kdbg scan')
             return main_page(request, error_line='Unable to find a valid profile with kdbg scan')
@@ -139,7 +182,7 @@ def session_creation(request, mem_image, session_id):
 
         if auto_list:
             if plugin_name in auto_list:
-                multiprocessing.Process(target=run_plugin, args=(session_id, plugin_id)).start()
+                multiprocessing.Process(target=run_plugin, args=(session_id, plugin_id, use_gi, gi_path)).start()
 
 
 ##
@@ -229,6 +272,7 @@ def session_page(request, session_id):
                     'volatility': vol_interface.vol_version,
                     'volutility': volutility_version}
     # Check if file still exists
+    print "session path:" + session_details['session_path']
     if not os.path.exists(session_details['session_path']):
         error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
 
@@ -283,12 +327,13 @@ def create_session(request):
         # Store it
         session_id = db.create_session(new_session)
         # Run the multiprocessing
-        p = multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
+        #PK p = multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
+        p = session_creation(request, mem_image, session_id)
         # Add search all on main page filter sessions that match.
     return redirect('/')
 
 
-def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
+def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin_options=None):
     """
     return the results json from a plugin
     :param session_id:
@@ -298,16 +343,18 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     :return:
     """
 
-    def try_run(plugin_name, dump_dir=None, output_style=None, pid=None, plugin_options=None):
+    def try_run(plugin_name, dump_dir=None, use_gi=False, gi_path='', output_style=None, pid=None, plugin_options=None):
         global plugin_style
         plugin_style = output_style
         logger.debug("Testing: {0}".format(plugin_style))
         try:
             results = vol_int.run_plugin(plugin_name,
                                          dump_dir=dump_dir,
-                                         output_style=plugin_style,
+                                         use_gi=use_gi,
+                                         gi_path=gi_path,
                                          pid=pid,
-                                         plugin_options=plugin_options
+                                         plugin_options=plugin_options,
+                                         output_style=plugin_style
                                          )
 
             return [results, dump_dir]
@@ -834,7 +881,7 @@ def ajax_handler(request, command):
         # Else Generate and store
         session = db.get_session(session_id)
         vol_int = RunVol(session['session_profile'], session['session_path'])
-        results = vol_int.run_plugin('vadtree', output_style='dot', pid=pid)
+        results = vol_int.run_plugin('vadtree', output_style='dot', use_gi=False, gi_path='', pid=pid)
 
         # Configure the output for svg with D3 and digraph-d3
 

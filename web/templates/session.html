@@ -53,6 +53,15 @@
                         <th>Description</th>
                         <td>{{session_details.session_description}}</td>
                     </tr>
+                    <tr>
+                        <th>Use GoldenImage</th>
+                        <td>{{session_details.use_gi}}</td>
+                    </tr>
+                    <tr>
+                        <th>GoldenImage Path</th>
+                        <td>{{session_details.gi_path}}</td>
+                    </tr>
+
 
                 </table>
 
@@ -103,6 +112,7 @@ This is a mid level nav bar to hold tool links
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
       <ul class="nav navbar-nav">
         <li><a href="#" onclick="ajaxHandler('dottree', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >Process map</a></li>
+        <li><a href="#" onclick="ajaxHandler('timeline', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >TimeLine</a></li>
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
           <li><a href="#" data-toggle="modal" data-target="#volShell">VolShell</a></li>
@@ -188,6 +198,7 @@ This is a mid level nav bar to hold tool links
                     <thead>
                     <tr>
                         <th>Plugin Command</th>
+                        <th>Plugin Type</th>
                         <th>Date Completed</th>
                         <th>Actions</th>
                     </tr>
