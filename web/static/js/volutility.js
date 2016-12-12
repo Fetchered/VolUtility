@@ -478,6 +478,12 @@ function resultscontextmenu ($, window) {
             $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
     }
 
+    if (plugin_name == 'dlllist') {
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store DLL</a></li>');
+    }
+
+
     if (plugin_name == 'filescan') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store File Object</a></li>');
@@ -649,6 +655,11 @@ $("#resultsTable tbody tr").contextMenu({
         if (menu_option == 'Store Process Mem') {
             var session_id = $('#sessionID').html();
             ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, true);
+        }
+
+        if (menu_option == 'Store DLL') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id}, true);
         }
 
         if (menu_option == 'Store File Object') {

@@ -54,21 +54,14 @@ debug.error = new_error
 # Stop these plugins being listed as we can or will not handle them
 plugin_filters = {
     "drop": ['crashdump', 'crashinfo', 'hibinfo', 'imagecopy', 'raw2dmp', 'volshell', 'strings', 'bioskbd', 'patcher', 'chromecookies', 'poolpeek', 'impscan', 'hivedump', 'pstree', 'yarascan', 'kdbgscan', 'kpcrscan', 'threads', 'malfind', 'bigpools', 'joblinks', 'vboxinfo', 'vmwareinfo', 'hpakinfo', 'hpakextract', 'notepad', 'shellbags', 'servicediff', 'shutdowntime', 'qemuinfo', 'truecryptmaster', 'truecryptpassphrase', 'truecryptsummary', 'multiscan', 'procdump', 'machoinfo', 'timeliner', 'pooltracker', 'moddump', 'mac_volshell', 'mac_yarascan'],
-    "procdll": ['privs', 'pslist', 'psxview', 'psscan', 'dlllist', 'ldrmodules', 'dlldump', 'handles', 'getsids', 'cmdscan', 'cmdline', 'consoles', 'envars', 'apihooks'],
+    "procs": ['memmap', 'memdump','procmemdump','procexedump','vadinfo', 'vadwalk', 'vadtree','vaddump', 'privs', 'pslist', 'psxview', 'psscan', 'dlllist', 'ldrmodules', 'dlldump', 'handles', 'getsids', 'cmdscan', 'cmdline', 'consoles', 'envars', 'apihooks', 'linux_pslist', 'linux_pstree', 'linux_lsof', 'linux_psxview', 'linux_proc_maps', 'linux_proc_maps_rb', 'linux_procdump', 'linux_process_hollow', 'linux_psaux', 'linux_threads'],
     "registry": ['hivescan', 'hivelist', 'printkey', 'hivedump', 'hashdump', 'lsadump', 'cachedump', 'userassist', 'shimcache', 'getservicesids', 'amcache', 'auditpol', 'autoruns'],
-    "network": ['connections', 'connscan', 'sockets', 'sockscan', 'netscan'], 
-    "kernelmem": ['modscan', 'svcscan', 'moddump', 'ssdt', 'driverscan', 'mutantscan', 'symlinkscan', 'thrdscan', 'gdt', 'idt', 'callbacks', 'driverirp', 'devicetree', 'timers', 'objtypescan', 'drivermodule', 'unloadedmodules'],
-    "procmem":['memmap', 'memdump','procmemdump','procexedump','vadinfo', 'vadwalk', 'vadtree','vaddump', 'evtlogs'],
+    "network": ['connections', 'connscan', 'sockets', 'sockscan', 'netscan', 'mac_arp', 'mac_ifconfig','mac_netstat','mac_route', 'mac_network_conns', 'linux_ifconfig','linux_netstat','linux_route_cache', 'linux_netfilter', 'linux_netscan'], 
+    "kernelmem": ['modscan', 'svcscan', 'moddump', 'ssdt', 'driverscan', 'mutantscan', 'symlinkscan', 'thrdscan', 'gdt', 'idt', 'callbacks', 'driverirp', 'devicetree', 'timers', 'objtypescan', 'drivermodule', 'unloadedmodules', 'mac_list_sessions','mac_list_zones', 'mac_mount', 'mac_moddump', 'mac_lsmod', 'mac_lsmod_kext_map'],
     "wingui": ['sessions', 'wndscan', 'deskscan', 'atomscan', 'atoms', 'clipboard', 'eventhooks', 'gahti', 'messagehooks', 'screenshot', 'userhandles', 'gditimers', 'windows', 'wintree', 'editbox'],
     "filesys": ['filescan', 'dumpcerts', 'dumpfiles', 'dumpregistry', 'modules', 'mbrparser', 'mftparser', 'verinfo', 'mac_list_files', 'mac_recover_filesystem', 'mac_dump_file', 'linux_find_file', 'linux_enumerate_files', 'linux_elfs'],		
-    "other": ['shutdowntime', 'imageinfo', 'iehistory', 'apt17scan'],
-    "mac_procs": ['mac_pslist', 'mac_tasks', 'mac_pstree', 'mac_lsof', 'mac_pgrp_hash_table', 'mac_pid_hash_table', 'mac_psaux', 'mac_dead_procs', 'mac_psxview', 'mac_procdump', 'mac_proc_maps', 'mac_dump_maps', 'mac_librarydump', 'mac_threads', 'mac_threads_simple', 'mac_dyld_maps'], 
-    "mac_kernelmem": ['mac_list_sessions','mac_list_zones', 'mac_mount', 'mac_moddump', 'mac_lsmod', 'mac_lsmod_kext_map'],
-    "mac_network": ['mac_arp', 'mac_ifconfig','mac_netstat','mac_route', 'mac_network_conns'],
-    "mac_sysinfo": ['mac_dmesg','mac_find_aslr_shift','mac_machine_info','mac_version','mac_print_boot_cmdline'],
-    "mac_malware": ['mac_check_sysctl','mac_check_syscalls','mac_check_trap_table','mac_ip_filters','mac_notifiers','mac_trustedbsd'],
-    "linux_procs": ['linux_pslist', 'linux_pstree', 'linux_lsof', 'linux_psxview', 'linux_proc_maps', 'linux_proc_maps_rb', 'linux_procdump', 'linux_process_hollow', 'linux_psaux', 'linux_threads'], 
-    "linux_network": ['linux_ifconfig','linux_netstat','linux_route_cache', 'linux_netfilter', 'linux_netscan'],
+    "sysinfo": ['mac_dmesg','mac_find_aslr_shift','mac_machine_info','mac_version','mac_print_boot_cmdline'],
+    "malware": ['mac_check_sysctl','mac_check_syscalls','mac_check_trap_table','mac_ip_filters','mac_notifiers','mac_trustedbsd'],
 }
 
 

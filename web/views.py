@@ -23,6 +23,40 @@ except ImportError:
     YARA = False
     logger.warning("Unable to import Yara")
 
+use_gi = False
+gi_path = ''
+
+
+PLUGINS_DIFF_PARAM_1 = [
+['mutantscan',7],
+['ssdt',7],
+['callbacks',3],
+['moddump',2],
+['driverirp',8],
+['atoms',8],
+['pslist',3],
+['cmdline',3],
+['dlllist',5],
+['mac_psaux',1],
+['linux_psaux',1],
+['mac_list_files', 2],
+['mac_pid_hash_table',3],
+['mac_pgrp_hash_table',3],
+['mac_pstree',3],
+['mac_psxview',3],
+['mac_mount',1],
+['linux_psxview',3],
+['mac_psenv',1],
+['mac_pslist',3],
+['linux_pslist',3],
+['mac_tasks',3],
+['mac_lsof',1],
+['linux_lsof',3],
+['linux_proc_maps',2],
+['linux_elfs',2],
+]
+
+
 ##
 # Import The volatility Interface and DB Class
 ##
@@ -38,15 +72,17 @@ except Exception as e:
 
 def session_creation(request, mem_image, session_id):
     # Get some vars
+    global gi_path
     new_session = db.get_session(session_id)
     file_hash = False
-    use_gi = False
-    gi_path = ''
 
     if 'description' in request.POST:
         new_session['session_description'] = request.POST['description']
     if 'plugin_path' in request.POST:
         new_session['plugin_path'] = request.POST['plugin_path']
+    if 'sess_path' in request.POST:
+        new_session['session_path'] = request.POST['sess_path']
+        gi_path = os.path.dirname(os.path.abspath(request.POST['sess_path'])) + '\\GoldenImage\\'
     if 'file_hash' in request.POST:
         file_hash = True
     if 'sess_os' in request.POST:
@@ -61,6 +97,7 @@ def session_creation(request, mem_image, session_id):
         new_session['gi_path'] = ''      
 
     # Check for mem file
+    print "gi_path: %s" %(gi_path)
     if not os.path.exists(mem_image):
         logger.error('Unable to find an image file at {0}'.format(mem_image))
         new_session['status'] = 'Unable to find an image file at {0}'.format(request.POST['sess_path'])
@@ -161,10 +198,29 @@ def session_creation(request, mem_image, session_id):
     # For each plugin create the entry
     for plugin in plugin_list:
         plugin_name = plugin[0]
-        db_results = {'session_id': session_id, 'plugin_name': plugin_name}
+        db_results = {'session_id': session_id, 'plugin_name': plugin_name }
         # Ignore plugins we cant handle
         if plugin_name in plugin_filters['drop']:
             continue
+        elif plugin_name in plugin_filters['network']:
+            db_results['type'] = 'Networking'
+        elif plugin_name in plugin_filters['kernelmem']:
+            db_results['type'] = 'Kernel Objects'
+        elif plugin_name in plugin_filters['procs']:
+            db_results['type'] = 'Processes and DLLs'
+        elif plugin_name in plugin_filters['registry']:
+            db_results['type'] = 'Registry'
+        elif plugin_name in plugin_filters['wingui']:
+            db_results['type'] = 'Windows GUI'
+        elif plugin_name in plugin_filters['filesys']:
+            db_results['type'] = 'File System'
+        elif plugin_name in plugin_filters['sysinfo']:
+            db_results['type'] = 'System Information'
+        elif plugin_name in plugin_filters['malware']:
+            db_results['type'] = 'Malware & Rootkits'
+        else: #plugin_name in plugin_filters['other']:
+            db_results['type'] = 'Other'
+
         plugin_output = plugin_status = None
         # Create placeholders for dumpfiles and memdump
         if plugin_name == 'dumpfiles':
@@ -273,6 +329,7 @@ def session_page(request, session_id):
                     'volutility': volutility_version}
     # Check if file still exists
     print "session path:" + session_details['session_path']
+
     if not os.path.exists(session_details['session_path']):
         error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
 
@@ -332,8 +389,40 @@ def create_session(request):
         # Add search all on main page filter sessions that match.
     return redirect('/')
 
+def diff_plugin_single(gi_plugin_path, plugin_name, idx, new_param):
+    """
+    return the results json from a plugin
+    :param gi_plugin_path:
+    :return:
+    """
+    results = ''
+    output_gi = []
+    with open(gi_plugin_path + plugin_name) as data_file:    
+        output_GoldenImage = json.load(data_file)
 
-def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin_options=None):
+    new = True
+    for row in output_GoldenImage['rows']:
+        if ( new_param == row[idx-1]):
+            new = False
+                    
+    if new:            
+        results = 'New Param %u'%(idx-1)
+
+    return results
+
+def diff_plugin_empty(gi_plugin_path, plugin_name):
+    """
+    return the results json from a plugin
+    :param gi_plugin_path:
+    :return:
+    """
+    results = ''
+
+    return results
+
+
+
+def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     """
     return the results json from a plugin
     :param session_id:
@@ -388,11 +477,13 @@ def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin
         plugin_row = db.get_pluginbyid(plugin_id)
         plugin_name = plugin_row['plugin_name'].lower()
         logger.debug('Running Plugin: {0}'.format(plugin_name))
+        gi_path = session['gi_path'];
         # Set plugin status
         new_values = {'status': 'processing'}
         db.update_plugin(plugin_id, new_values)
         # set vol interface
         vol_int = RunVol(session['session_profile'], session['session_path'])
+        #print "session_gi_path: %s"%(session['gi_path'])
         # Run the plugin with json as normal
         output_style = 'json'
 
@@ -400,12 +491,12 @@ def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin
                                     dump_dir=dump_dir,
                                     output_style='json',
                                     pid=pid,
-                                    plugin_options=plugin_options
+                                    plugin_options=plugin_options,
                                     )
 
         results = plugin_return[0]
         dump_dir = plugin_return[1]
-
+        
         if 'error' in results:
             new_values = {'status': 'error'}
             db.update_plugin(plugin_id, new_values)
@@ -588,6 +679,9 @@ def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin
             # Add option to process malfind
             if plugin_row['plugin_name'] in ['malfind']:
                 results['columns'].append('Extract Injected Code')
+            if (session['use_gi'] == 'True'):
+                results['columns'].append('Diff')
+                
 
             # Now Rows
             for row in results['rows']:
@@ -601,6 +695,9 @@ def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin
                 else:
                     row.insert(0, counter)
 
+                #if (session['use_gi'] == 'True'):
+                #    row.append(diff_plugin_empty(session['gi_path'], ''))
+
                 if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
                     row.append('Use the "dumpregistry" plugin to view hive keys')
 
@@ -609,6 +706,14 @@ def run_plugin(session_id, plugin_id, use_gi=False, gi_path='', pid=None, plugin
                     ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + \
                                   "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
                     row.append('<a class="text-success" href="#" ' + ajax_string + '>Extract Injected</a>')
+
+
+                if (session['use_gi'] == 'True'):
+                         for c_plug, c_idx in PLUGINS_DIFF_PARAM_1: 
+                               if plugin_row['plugin_name'] == c_plug:
+                                    row.append(diff_plugin_single(session['gi_path'], plugin_row['plugin_name'], c_idx, row[c_idx]))
+
+
 
                 counter += 1
 
@@ -803,6 +908,7 @@ def ajax_handler(request, command):
             return HttpResponse('OK')
 
     if command == 'runplugin':
+        print "gi_path: %s"%(gi_path)
         if 'plugin_id' in request.POST and 'session_id' in request.POST:
             plugin_name = run_plugin(request.POST['session_id'], request.POST['plugin_id'])
             return HttpResponse(plugin_name)
@@ -956,7 +1062,7 @@ def ajax_handler(request, command):
                                 <tr><td>Name</td><td>|Name|</td></tr> \
                                 <tr><td>PID</td><td>|Pid|</td></tr> \
                                 <tr><td>PPID</td><td>|PPid|</td></tr> \
-                                <tr><td>Offfset</td><td>|Offset|</td></tr> \
+                                <tr><td>Offset</td><td>|Offset|</td></tr> \
                                 <tr><td>Threads</td><td>|Thds|</td></tr> \
                                 <tr><td>Handles</td><td>|Hnds|</td></tr> \
                                 <tr><td>Time</td><td>|Time|</td></tr> \
@@ -1404,6 +1510,26 @@ def ajax_handler(request, command):
 
             res = run_plugin(session_id, plugin_row['_id'], pid=pid)
             return HttpResponse(res)
+
+    if command == 'dlldump':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            pid = row[1]
+            offset = row[2]
+
+            plugin_row = db.get_plugin_byname('dlldump', session_id)
+
+            logger.debug('Running Plugin: dlldump with pid {0} and address {1}'.format(pid, offset))
+
+            print "offset: %s"%(offset)
+            print "pid: %s"%(pid)  
+            res = run_plugin(session_id, plugin_row['_id'], pid=pid, plugin_options={'base': int(offset,0)})
+            return HttpResponse(res)
+
 
     if command == 'filedump':
         if 'row_id' in request.POST and 'session_id' in request.POST:
