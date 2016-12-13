@@ -229,6 +229,13 @@ def session_creation(request, mem_image, session_id):
         elif plugin_name == 'memdump':
             plugin_output = {'columns': ['Process', 'PID', 'StoredFile'], 'rows': []}
             plugin_status = 'complete'
+        elif plugin_name == 'procdump':
+            plugin_output = {'columns': ['Process', 'ImageBase', 'Name', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
+        elif plugin_name == 'dlldump':
+            plugin_output = {'columns': ['Process', 'ImageBase', 'Name', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
+
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
         db_results['plugin_output'] = plugin_output
@@ -555,48 +562,38 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 db.update_plugin(plugin_id, new_values)
 
             if plugin_row['plugin_name'] in ['procdump', 'dlldump']:
+                logger.debug('Processing Rows')
+                # Convert text to rows
+                if not plugin_row['plugin_output']:
+                    new_results = {'rows': [], 'columns': ['Process', 'ImageBase', 'Name', 'StoredFile']}
+                else:
+                    new_results = plugin_row['plugin_output']
+
                 # Add new column
-                results['columns'].append('StoredFile')
+                #PK results['columns'].append('StoredFile')
                 for row in results['rows']:
-                    if row[-1].startswith("OK"):
-                        filename = row[-1].split("OK: ")[-1]
-                        if filename in file_list:
-                            file_data = open(os.path.join(dump_dir, filename), 'rb').read()
+                    process = row[0]
+                    base = row[1]
+                    name = row[2]
+
+                    if row[-1].startswith("OK: "):
+                        dump_file = row[-1].split("OK: ")[-1]
+
+                        if dump_file in file_list:
+                            file_data = open(os.path.join(dump_dir, dump_file), 'rb').read()
                             sha256 = hashlib.sha256(file_data).hexdigest()
-                            file_id = db.create_file(file_data, session_id, sha256, filename)
-                            row.append('<a class="text-success" href="#" '
-                                       'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) +
-                                       '\'}, false ); return false">'
-                                       'File Details</a>')
+                            file_id = db.create_file(file_data, session_id, sha256, dump_file)
+                            row_file = '<a class="text-success" href="#" ' \
+                                       'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + \
+                                       '\'}, false ); return false">' \
+                                       'File Details</a>'
+                            new_results['rows'].append([process, base, name, row_file])
+                        else:
+                            new_results['rows'].append([process, base, name, 'Not Stored'])
                     else:
-                        row.append('Not Stored')
-
-            if plugin_row['plugin_name'] == 'dumpregistry':
-                results = {'columns': ['Hive Name', 'StoredFile'], 'rows': []}
-                for filename in file_list:
-                    file_data = open(os.path.join(dump_dir, filename), 'rb').read()
-                    sha256 = hashlib.sha256(file_data).hexdigest()
-                    file_id = db.create_file(file_data, session_id, sha256, filename)
-                    results['rows'].append([filename,
-                                            '<a class="text-success" href="#" '
-                                            'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) +
-                                            '\'}, false ); return false">'
-                                            'File Details</a>'])
-
-            if plugin_row['plugin_name'] in ['dumpcerts']:
-                # Add new column
-                for row in results['rows']:
-                    filename = row[5]
-                    if filename in file_list:
-                        file_data = open(os.path.join(dump_dir, filename), 'rb').read()
-                        sha256 = hashlib.sha256(file_data).hexdigest()
-                        file_id = db.create_file(file_data, session_id, sha256, filename)
-                        row[-1] = '<a class="text-success" href="#" ' \
-                                  'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + \
-                                  str(file_id) + '\'}, false ); return false">' \
-                                  'File Details</a>'
-                    else:
-                        row.append('Not Stored')
+                        new_results['rows'].append([process, base, name, 'Not Stored'])
+                        #PK row.append('Not Stored')
+                results = new_results
 
             if plugin_row['plugin_name'] in ['memdump']:
                 logger.debug('Processing Rows')
@@ -629,6 +626,34 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                         new_results['rows'].append([process, pid, row_file])
 
                 results = new_results
+
+            if plugin_row['plugin_name'] == 'dumpregistry':
+                results = {'columns': ['Hive Name', 'StoredFile'], 'rows': []}
+                for filename in file_list:
+                    file_data = open(os.path.join(dump_dir, filename), 'rb').read()
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    file_id = db.create_file(file_data, session_id, sha256, filename)
+                    results['rows'].append([filename,
+                                            '<a class="text-success" href="#" '
+                                            'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) +
+                                            '\'}, false ); return false">'
+                                            'File Details</a>'])
+
+            if plugin_row['plugin_name'] in ['dumpcerts']:
+                # Add new column
+                for row in results['rows']:
+                    filename = row[5]
+                    if filename in file_list:
+                        file_data = open(os.path.join(dump_dir, filename), 'rb').read()
+                        sha256 = hashlib.sha256(file_data).hexdigest()
+                        file_id = db.create_file(file_data, session_id, sha256, filename)
+                        row[-1] = '<a class="text-success" href="#" ' \
+                                  'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + \
+                                  str(file_id) + '\'}, false ); return false">' \
+                                  'File Details</a>'
+                    else:
+                        row.append('Not Stored')
+
 
             # ToDo
             '''
@@ -679,8 +704,10 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Add option to process malfind
             if plugin_row['plugin_name'] in ['malfind']:
                 results['columns'].append('Extract Injected Code')
+
             if (session['use_gi'] == 'True'):
-                results['columns'].append('Diff')
+                if plugin_name not in ['dumpfiles', 'mac_dump_files', 'memdump', 'procdump', 'dlldump']:
+                    results['columns'].append('Diff')
                 
 
             # Now Rows
@@ -690,6 +717,9 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                     if len(row) == 3:
                         row.insert(0, counter)
                 elif plugin_name in ['dumpfiles', 'mac_dump_files']:
+                    if len(row) == 4:
+                        row.insert(0, counter)
+                elif plugin_name in ['procdump', 'dlldump']:
                     if len(row) == 4:
                         row.insert(0, counter)
                 else:
@@ -709,9 +739,13 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
 
                 if (session['use_gi'] == 'True'):
+                         bFound = False
                          for c_plug, c_idx in PLUGINS_DIFF_PARAM_1: 
                                if plugin_row['plugin_name'] == c_plug:
                                     row.append(diff_plugin_single(session['gi_path'], plugin_row['plugin_name'], c_idx, row[c_idx]))
+                                    bFound = True
+                         if not bFound:
+                               row.append(diff_plugin_empty(session['gi_path'], plugin_row['plugin_name']))
 
 
 
@@ -1523,12 +1557,27 @@ def ajax_handler(request, command):
 
             plugin_row = db.get_plugin_byname('dlldump', session_id)
 
-            logger.debug('Running Plugin: dlldump with pid {0} and address {1}'.format(pid, offset))
+            logger.debug('Running Plugin: dlldump with pid {0} and base {1}'.format(pid, offset))
 
-            print "offset: %s"%(offset)
-            print "pid: %s"%(pid)  
             res = run_plugin(session_id, plugin_row['_id'], pid=pid, plugin_options={'base': int(offset,0)})
             return HttpResponse(res)
+
+    if command == 'procdump':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            pid = row[3]
+
+            plugin_row = db.get_plugin_byname('procdump', session_id)
+
+            logger.debug('Running Plugin: dlldump with pid {0}:'.format(pid))
+
+            res = run_plugin(session_id, plugin_row['_id'], pid=pid)
+            return HttpResponse(res)
+
 
 
     if command == 'filedump':

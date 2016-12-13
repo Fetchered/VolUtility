@@ -2,6 +2,7 @@
         {% for row in plugin_output %}
         <tr id="{{row|get:"_id"}}">
             <td data-toggle="tooltip" data-placement="right" title="{{ row.help_string }}">{{row.plugin_name}}</td>
+            <td>{{row.type}}</td>
             <td>{{row.created|date:"m M y H:i:s"}}</td>
 
             {% if row.status == None %}

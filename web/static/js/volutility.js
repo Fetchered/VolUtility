@@ -420,6 +420,12 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'procmem') {
                 notifications('success', true, postOptions['plugin_id'], 'Check memdump plugin for your file.');
 
+            }else if (command == 'procdump') {
+                notifications('success', true, postOptions['plugin_id'], 'Check procdump plugin for your file.');
+
+            }else if (command == 'dlldump') {
+                notifications('success', true, postOptions['plugin_id'], 'Check dlldump plugin for your file.');
+
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
             }else if (command == 'linux_find_file') {
@@ -475,14 +481,16 @@ function resultscontextmenu ($, window) {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
             $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Executable</a></li>');
+            $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
+
     }
 
     if (plugin_name == 'dlllist') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store DLL</a></li>');
     }
-
 
     if (plugin_name == 'filescan') {
             $("#contextMenu").append('<li class="divider"></li>');
@@ -661,6 +669,12 @@ $("#resultsTable tbody tr").contextMenu({
             var session_id = $('#sessionID').html();
             ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id}, true);
         }
+
+        if (menu_option == 'Store Process Executable') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('procdump', {'row_id':row_id, 'session_id':session_id}, true);
+        }
+
 
         if (menu_option == 'Store File Object') {
             var session_id = $('#sessionID').html();
