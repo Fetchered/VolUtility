@@ -217,7 +217,7 @@ class RunVol:
         # Convert Hex ints to 0x Values
         logger.debug("running result_mod")      
         try:
-            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address', 'Inode Address']:
+            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address', 'Inode Address', 'HookAddress', 'DataAddress', 'VictimModBase', 'HookAddressBase']:
 
                 if x in results['columns']:
                     row_loc = results['columns'].index(x)
@@ -271,6 +271,18 @@ class RunVol:
             elif plugin_name == 'kdbgscan':
                 output_data = self.get_text(command)
                 return output_data
+
+            elif plugin_name == 'vaddump':
+                if not pid:
+                    logger.debug('No Offset Provided')
+                    return None
+                if 'base' not in plugin_options:
+                    logger.debug('No Base Provided')
+                    return None
+
+                output_data = self.get_json(command)
+                return output_data
+
 
             elif plugin_name == 'memdump':
                 if not pid:

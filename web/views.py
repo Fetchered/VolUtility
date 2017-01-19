@@ -235,6 +235,10 @@ def session_creation(request, mem_image, session_id):
         elif plugin_name == 'dlldump':
             plugin_output = {'columns': ['Process', 'ImageBase', 'Name', 'StoredFile'], 'rows': []}
             plugin_status = 'complete'
+        elif plugin_name == 'vaddump':
+            plugin_output = {'columns': ['Offset(V)', 'Name', 'Address', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
+
 
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
@@ -443,6 +447,20 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         global plugin_style
         plugin_style = output_style
         logger.debug("Testing: {0}".format(plugin_style))
+
+        if plugin_name == "vaddump":
+           print "vaddump !!!!!!!!!!!!!!!!!!!!!!!!!"
+           # Create Temp Dir
+           logger.debug('{0} - Creating Temp Directory'.format(plugin_name))
+           temp_dir = tempfile.mkdtemp()
+           dump_dir = temp_dir
+           rlts = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, use_gi = use_gi, gi_path = gi_path, output_style="text", pid=pid, plugin_options=plugin_options) 
+           print "TRy RUN vaddump !!!!!!!!!!!!!!!!"
+           return [rlts , dump_dir]
+
+
+
+
         try:
             results = vol_int.run_plugin(plugin_name,
                                          dump_dir=dump_dir,
@@ -595,6 +613,52 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                         #PK row.append('Not Stored')
                 results = new_results
 
+            if plugin_row['plugin_name'] in ['vaddump']:
+                logger.debug('Processing Rows')
+                print "vaddump!!!!!!!!!!!!!!!!"
+                # Convert text to rows
+                if not plugin_row['plugin_output']:
+                    new_results = {'rows': [], 'columns': ['Offset(V)', 'Name', 'Address', 'StoredFile']}
+                else:
+                    new_results = plugin_row['plugin_output']
+
+                # Add new column
+                #PK results['columns'].append('StoredFile')
+      
+                print "RESULTS!!!!!!!!!!!!!!"  
+                print results['rows']
+
+                for row in results['rows']:
+                    process = row[0]
+                    base = row[1]
+                    name = row[2]
+                    print row[-1]
+
+                    if row[-1].startswith("OK: "):
+
+                        dump_file = row[-1].split("OK: ")[-1]
+                        print dump_file
+                        print file_list
+
+                        #PK if dump_file in file_list:
+                        if 1:
+                            file_data = open(os.path.join(dump_dir, dump_file), 'rb').read()
+                            sha256 = hashlib.sha256(file_data).hexdigest()
+                            file_id = db.create_file(file_data, session_id, sha256, dump_file)
+                            row_file = '<a class="text-success" href="#" ' \
+                                       'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + \
+                                       '\'}, false ); return false">' \
+                                       'File Details</a>'
+                            new_results['rows'].append([process, base, name, row_file])
+                        else:
+                            new_results['rows'].append([process, base, name, 'Not Stored'])
+                    else:
+                        new_results['rows'].append([process, base, name, 'Not Stored'])
+                        #PK row.append('Not Stored')
+                results = new_results
+
+
+
             if plugin_row['plugin_name'] in ['memdump']:
                 logger.debug('Processing Rows')
                 # Convert text to rows
@@ -720,6 +784,9 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                     if len(row) == 4:
                         row.insert(0, counter)
                 elif plugin_name in ['procdump', 'dlldump']:
+                    if len(row) == 4:
+                        row.insert(0, counter)
+                elif plugin_name in ['vaddump']:
                     if len(row) == 4:
                         row.insert(0, counter)
                 else:
@@ -1546,7 +1613,7 @@ def ajax_handler(request, command):
             return HttpResponse(res)
 
     if command == 'dlldump':
-        if 'row_id' in request.POST and 'session_id' in request.POST:
+        if 'row_id' in request.POST and 'session_id' in request.POST and 'offset' in request.POST and 'pid' in request.POST:
             plugin_id, row_id = request.POST['row_id'].split('_')
             session_id = request.POST['session_id']
             row_id = int(row_id)
@@ -1561,6 +1628,26 @@ def ajax_handler(request, command):
 
             res = run_plugin(session_id, plugin_row['_id'], pid=pid, plugin_options={'base': int(offset,0)})
             return HttpResponse(res)
+
+    if command == 'vaddump':
+        if 'row_id' in request.POST and 'session_id' in request.POST  and 'offset' in request.POST and 'pid' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            #pid = row[1]
+            pid = request.POST['pid']
+            #offset = row[2]
+            offset = request.POST['offset']
+
+            plugin_row = db.get_plugin_byname('vaddump', session_id)
+
+            logger.debug('Running Plugin: vaddump with pid {0} and base {1}'.format(pid, offset))
+            print "Running plugin vaddump %u %s"%(int(pid), offset)
+            res = run_plugin(session_id, plugin_row['_id'], pid=int(pid), plugin_options={'base': int(offset,0)})
+            return HttpResponse(res)
+
 
     if command == 'procdump':
         if 'row_id' in request.POST and 'session_id' in request.POST:
@@ -1578,6 +1665,21 @@ def ajax_handler(request, command):
             res = run_plugin(session_id, plugin_row['_id'], pid=pid)
             return HttpResponse(res)
 
+    if command == 'apihooks':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            pid = row[3]
+
+            plugin_row = db.get_plugin_byname('apihooks', session_id)
+            print('Running Plugin: apihooks with pid {0}:'.format(pid))
+            logger.debug('Running Plugin: apihooks with pid {0}:'.format(pid))
+
+            res = run_plugin(session_id, plugin_row['_id'], pid=pid)
+            return HttpResponse(res)
 
 
     if command == 'filedump':

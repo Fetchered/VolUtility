@@ -428,9 +428,21 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
-            }else if (command == 'linux_find_file') {
+            }
+            else if (command == 'linux_find_file') 
+            {
                 notifications('success', true, postOptions['plugin_id'], 'Check linux_find_file plugin for your file.');
-            }else {
+            }
+            else if (command == 'apihooks') 
+            {
+                notifications('success', true, postOptions['plugin_id'], 'Check apihooks plugin for your file.');
+            }
+            else if (command == 'vaddump') 
+            {
+                notifications('success', true, postOptions['plugin_id'], 'Check vaddump plugin for your file.');
+            }
+            else 
+            {
                 if (postOptions['target_div']){
                     $('#'+postOptions["target_div"]).html(data);
                 }else{
@@ -483,6 +495,8 @@ function resultscontextmenu ($, window) {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Executable</a></li>');
             $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">WINAPI hooks</a></li>');
+            $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
 
     }
@@ -497,6 +511,12 @@ function resultscontextmenu ($, window) {
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store File Object</a></li>');
 
     }
+
+    if (plugin_name == 'apihooks') {
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store VAD Page</a></li>');
+    }
+
 
     if (plugin_name == 'linux_enumerate_files') {
             $("#contextMenu").append('<li class="divider"></li>');
@@ -666,9 +686,46 @@ $("#resultsTable tbody tr").contextMenu({
         }
 
         if (menu_option == 'Store DLL') {
+            var pid_index = $('th:contains("Pid")').index();
+            var offset_index = $('th:contains("Base")').index();
+
+            var row_elem = $invokedOn.closest("tr");
+            console.log(row_elem);
+            //var pid = row_elem.cells[pid_index];
+            //var pid = $invokedOn.closest("tr td:eq("+row_elem+")").text();
+            var pid = row_elem.find('td:eq('+pid_index+')').text();
+            var offset=  row_elem.find('td:eq('+offset_index+')').text();
+
+
+            console.log(pid);
+            console.log(offset);
+
             var session_id = $('#sessionID').html();
-            ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id}, true);
+            ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id, 'pid':pid, 'offset':offset}, true);
         }
+
+
+        if (menu_option == 'Store VAD Page') {
+            var pid_index = $('th:contains("PID")').index();
+            var hkaddr_index = $('th:contains("HookAddressBase")').index();
+            
+
+            var row_elem = $invokedOn.closest("tr");
+            console.log(row_elem);
+            //var pid = row_elem.cells[pid_index];
+            //var pid = $invokedOn.closest("tr td:eq("+row_elem+")").text();
+            var pid = row_elem.find('td:eq('+pid_index+')').text();
+            var hkaddr=  row_elem.find('td:eq('+hkaddr_index+')').text();
+
+
+            console.log(pid);
+            console.log(hkaddr);
+
+            var session_id = $('#sessionID').html();
+            ajaxHandler('vaddump', {'row_id':row_id, 'session_id':session_id, 'pid': pid, 'offset':hkaddr}, true);
+        }
+
+
 
         if (menu_option == 'Store Process Executable') {
             var session_id = $('#sessionID').html();
@@ -684,6 +741,11 @@ $("#resultsTable tbody tr").contextMenu({
         if (menu_option == 'Store Linux File Object') {
             var session_id = $('#sessionID').html();
             ajaxHandler('linux_find_file', {'row_id':row_id, 'session_id':session_id, 'linux': true}, true);
+        }
+
+        if (menu_option == 'WINAPI hooks') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('apihooks', {'row_id':row_id, 'session_id':session_id}, true );
         }
 
         if (menu_option == 'View VAD Tree') {
