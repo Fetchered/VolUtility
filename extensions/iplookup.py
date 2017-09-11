@@ -4,15 +4,11 @@ from web.database import Database
 import geoip2.database
 
 from struct import unpack
-from socket import AF_INET, inet_pton
+from socket import AF_INET #, inet_pton
+from win_inet_pton import inet_pton
 
 # Get the database from
 # https://dev.maxmind.com/geoip/geoip2/geolite2/
-
-maxmind_city_db = '/usr/share/GeoIP/GeoLite2-City.mmdb'
-if not os.path.exists(maxmind_city_db):
-    raise IOError("Unable to locate GeoLite2-City.mmdb")
-
 
 class IPLookup(Extension):
 
@@ -37,7 +33,16 @@ class IPLookup(Extension):
     def run(self):
         plugin_results = self.plugin_results
         plugin_name = plugin_results['plugin_name']
+        maxmind_city_db = ''
+        print self.config['database']['path'], type(self.config['database']['path'])
+        maxmind_city_db = self.config['database']['path']
+
         reader = geoip2.database.Reader(maxmind_city_db)
+
+
+        if not os.path.exists(maxmind_city_db):
+           raise IOError("Unable to locate GeoLite2-City.mmdb")
+
 
         # Only run on plugins that return net data
 

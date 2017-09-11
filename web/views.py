@@ -615,7 +615,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
             if plugin_row['plugin_name'] in ['vaddump']:
                 logger.debug('Processing Rows')
-                print "vaddump!!!!!!!!!!!!!!!!"
+                logger.debug("vaddump!!!!!!!!!!!!!!!!")
                 # Convert text to rows
                 if not plugin_row['plugin_output']:
                     new_results = {'rows': [], 'columns': ['Offset(V)', 'Name', 'Address', 'StoredFile']}
@@ -625,20 +625,24 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 # Add new column
                 #PK results['columns'].append('StoredFile')
       
-                print "RESULTS!!!!!!!!!!!!!!"  
-                print results['rows']
+                logger.debug("RESULTS!!!!!!!!!!!!!!")
+                logger.debug(results['rows'])
 
                 for row in results['rows']:
-                    process = row[0]
-                    base = row[1]
-                    name = row[2]
-                    print row[-1]
+                    #process = row[0]
+                    #base = row[1]
+                    #name = row[2]
 
-                    if row[-1].startswith("OK: "):
+                    logger.debug("row")
+                    logger.debug( row)
+                    dump_file = row.split("\n")
+                    print dump_file[4]
 
-                        dump_file = row[-1].split("OK: ")[-1]
-                        print dump_file
-                        print file_list
+                    if (1):
+
+                        #dump_file = row[-1].split("OK: ")[-1]
+
+                        #print file_list
 
                         #PK if dump_file in file_list:
                         if 1:
@@ -651,7 +655,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                                        'File Details</a>'
                             new_results['rows'].append([process, base, name, row_file])
                         else:
-                            new_results['rows'].append([process, base, name, 'Not Stored'])
+                            new_results['rows'].append([process, base, name, 'Not Storrrrrred'])
                     else:
                         new_results['rows'].append([process, base, name, 'Not Stored'])
                         #PK row.append('Not Stored')
@@ -1143,7 +1147,7 @@ def ajax_handler(request, command):
         # Else Generate and store
         session = db.get_session(session_id)
         vol_int = RunVol(session['session_profile'], session['session_path'])
-        results = vol_int.run_plugin('pstree', output_style='dot')
+        results = vol_int.run_plugin('pstree', False, '', output_style='dot')
 
         # Configure the output for svg with D3 and digraph-d3
 
@@ -1644,8 +1648,13 @@ def ajax_handler(request, command):
             plugin_row = db.get_plugin_byname('vaddump', session_id)
 
             logger.debug('Running Plugin: vaddump with pid {0} and base {1}'.format(pid, offset))
-            print "Running plugin vaddump %u %s"%(int(pid), offset)
-            res = run_plugin(session_id, plugin_row['_id'], pid=int(pid), plugin_options={'base': int(offset,0)})
+
+            if offset != 0:
+                print "Running plugin vaddump %u %s"%(int(pid), offset)
+                res = run_plugin(session_id, plugin_row['_id'], pid=int(pid), plugin_options={'base': int(offset,0)})
+            else:
+                print "Running plugin vaddump %u"%(int(pid))
+                res = run_plugin(session_id, plugin_row['_id'], pid=int(pid))                 
             return HttpResponse(res)
 
 
