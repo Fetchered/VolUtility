@@ -272,6 +272,10 @@ class RunVol:
                 output_data = self.get_text(command)
                 return output_data
 
+            elif plugin_name == 'iehistory':
+                output_data = self.get_text(command)
+                return output_data
+
             elif plugin_name == 'vaddump':
                 if not pid:
                     logger.debug('No Offset Provided')
@@ -280,7 +284,7 @@ class RunVol:
                     logger.debug('No Base Provided')
                     return None
 
-                output_data = self.get_json(command)
+                output_data = self.get_text(command)
                 return output_data
 
 

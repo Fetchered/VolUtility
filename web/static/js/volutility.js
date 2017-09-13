@@ -489,16 +489,23 @@ function resultscontextmenu ($, window) {
     // Add Rows based on current plugin
     var plugin_name = $('#pluginName').html();
 
+    if (plugin_name == 'browserhooks') {
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store VAD Page</a></li>');
+    }
+
+
     if (plugin_name == 'pslist') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
+            // $("#contextMenu").append('<li class="divider"></li>');
+            // $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Vads</a></li>');
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Executable</a></li>');
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">WINAPI hooks</a></li>');
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
-
     }
 
     if (plugin_name == 'dlllist') {
@@ -512,11 +519,12 @@ function resultscontextmenu ($, window) {
 
     }
 
+    /*
     if (plugin_name == 'apihooks') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store VAD Page</a></li>');
     }
-
+    */
 
     if (plugin_name == 'linux_enumerate_files') {
             $("#contextMenu").append('<li class="divider"></li>');
@@ -684,6 +692,19 @@ $("#resultsTable tbody tr").contextMenu({
             var session_id = $('#sessionID').html();
             ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, true);
         }
+        /*
+        if (menu_option == 'Store Process Vads') {
+            var session_id = $('#sessionID').html();
+            var pid_index = $('th:contains("PID")').index();
+            var row_elem = $invokedOn.closest("tr");
+            var pid = row_elem.find('td:eq('+pid_index+')').text();
+            var hkaddr= 0;
+            console.log(pid);
+            console.log(hkaddr);
+            ajaxHandler('vaddump', {'row_id':row_id, 'session_id':session_id, 'pid':pid, 'offset':hkaddr}, true);
+        }
+        */
+
 
         if (menu_option == 'Store DLL') {
             var pid_index = $('th:contains("Pid")').index();
@@ -704,10 +725,9 @@ $("#resultsTable tbody tr").contextMenu({
             ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id, 'pid':pid, 'offset':offset}, true);
         }
 
-
         if (menu_option == 'Store VAD Page') {
             var pid_index = $('th:contains("PID")').index();
-            var hkaddr_index = $('th:contains("HookAddressBase")').index();
+            var hkaddr_index = $('th:contains("HookModBase")').index();
             
 
             var row_elem = $invokedOn.closest("tr");
