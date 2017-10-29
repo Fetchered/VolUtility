@@ -217,8 +217,7 @@ class RunVol:
         # Convert Hex ints to 0x Values
         logger.debug("running result_mod")      
         try:
-            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address', 'Inode Address', 'HookAddress', 'DataAddress', 'VictimModBase', 'HookAddressBase']:
-
+            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address', 'Inode Address', 'HookAddress', 'DataAddress', 'VictimModBase', 'HookModBase']:
                 if x in results['columns']:
                     row_loc = results['columns'].index(x)
                     for row in results['rows']:

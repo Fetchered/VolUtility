@@ -591,8 +591,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 #PK results['columns'].append('StoredFile')
                 for row in results['rows']:
                     process = row[0]
-                    base = row[1]
-                    name = row[2]
+                    base = row[2]
+                    name = row[1]
 
                     if row[-1].startswith("OK: "):
                         dump_file = row[-1].split("OK: ")[-1]
@@ -1623,8 +1623,10 @@ def ajax_handler(request, command):
             row_id = int(row_id)
             plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
             row = plugin_data['rows'][row_id - 1]
-            pid = row[1]
-            offset = row[2]
+            #pid = row[1]
+            pid = request.POST['pid']
+            #offset = row[2]
+            offset = request.POST['offset']
 
             plugin_row = db.get_plugin_byname('dlldump', session_id)
 
