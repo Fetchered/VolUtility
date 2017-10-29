@@ -491,7 +491,7 @@ function resultscontextmenu ($, window) {
 
     if (plugin_name == 'browserhooks') {
             $("#contextMenu").append('<li class="divider"></li>');
-            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store VAD Page</a></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Hooking Module</a></li>');
     }
 
 
@@ -725,7 +725,7 @@ $("#resultsTable tbody tr").contextMenu({
             ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id, 'pid':pid, 'offset':offset}, true);
         }
 
-        if (menu_option == 'Store VAD Page') {
+        if (menu_option == 'Store Hooking Module') {
             var pid_index = $('th:contains("PID")').index();
             var hkaddr_index = $('th:contains("HookModBase")').index();
             
@@ -742,10 +742,8 @@ $("#resultsTable tbody tr").contextMenu({
             console.log(hkaddr);
 
             var session_id = $('#sessionID').html();
-            ajaxHandler('vaddump', {'row_id':row_id, 'session_id':session_id, 'pid': pid, 'offset':hkaddr}, true);
+            ajaxHandler('dlldump', {'row_id':row_id, 'session_id':session_id, 'pid': pid, 'offset':hkaddr}, true);
         }
-
-
 
         if (menu_option == 'Store Process Executable') {
             var session_id = $('#sessionID').html();
