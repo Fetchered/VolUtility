@@ -1147,7 +1147,7 @@ def ajax_handler(request, command):
         # Else Generate and store
         session = db.get_session(session_id)
         vol_int = RunVol(session['session_profile'], session['session_path'])
-        results = vol_int.run_plugin('pstree', False, '', output_style='dot')
+        results = vol_int.run_plugin('pstree', False, '', output_style='dot', )
 
         # Configure the output for svg with D3 and digraph-d3
 
@@ -1292,7 +1292,7 @@ def ajax_handler(request, command):
             vol_int = RunVol(session['session_profile'], session['session_path'])
 
             if yara_string:
-                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, use_gi=False, gi_path='',  plugin_options={
                                                                                           'YARA_RULES': yara_string,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
@@ -1301,7 +1301,7 @@ def ajax_handler(request, command):
                                                                                           'REVERSE': yara_reverse})
 
             elif yara_file:
-                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, use_gi=False, gi_path='', plugin_options={
                                                                                           'YARA_FILE': yara_file,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
