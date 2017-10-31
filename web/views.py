@@ -154,11 +154,15 @@ def session_creation(request, mem_image, session_id):
                     profiles.append(line.split(' ')[0].strip())
 
         elif 'Linux' in sess_os:
+            profiles = ["LinuxUbuntu1404x64", "LinuxUbuntu1404x86", 0, 0]
+
+        elif 'Linux_skip' in sess_os:
             kdbg_results = vol_int.run_plugin('linux_get_profile', False, '', output_style='text')
             print "running linux_get_profile"
-            lines = kdbg_results['rows'][0][0]
+
             print "kdbglines: "
-            print lines
+            print kdbg_results
+            lines = kdbg_results['rows'][0][0]
             for line in lines.split('\n'):
                 if 'Linux' in line:
                     print 'profile: ' + line.split(' ')[0]
