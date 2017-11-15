@@ -1,16 +1,23 @@
 # Change Log
 
 - Original Repo: https://github.com/kevthehermit/VolUtility
-- Forked https://github.com/pkalnai/VolUtility on 7 Jan 2017
-- I forked pkalnai's VolUtility and implimented changes from kevthehermit from 7 Jan to 15 Nov 2017
+- Forked https://github.com/pkalnai/VolUtility on 7 Dec 2016
+- I forked pkalnai's VolUtility and implimented changes from kevthehermit from 7 Dec 2016 to 15 Nov 2017
 
-## [Unreleased](https://github.com/AJMartel/VolUtility)
+## [Released](https://github.com/AJMartel/VolUtility)
 
-[Full Changelog]
+## [v1.3]
+[Full Changelog](https://github.com/pkalnai/VolUtility/compare/master...AJMartel:master)
+
+**Security enhancements**
+
+- Remove static secret key
 
 **Implemented enhancements:**
 
 - Authentication request [\#66](https://github.com/kevthehermit/VolUtility/issues/66)
+
+## [v1.1 pkalnai]
 
 **Closed issues:**
 
