@@ -6,18 +6,18 @@
 
 ## [Released](https://github.com/AJMartel/VolUtility)
 
-## [v1.3]
+## [v1.3 AJMartel]
 [Full Changelog](https://github.com/pkalnai/VolUtility/compare/master...AJMartel:master)
 
-**Security enhancements**
+**Implimented Security enhancements from kevthehermit**
 
 - Remove static secret key
-
-**Implemented enhancements:**
-
 - Authentication request [\#66](https://github.com/kevthehermit/VolUtility/issues/66)
 
-## [v1.1 pkalnai]
+## [v1.1 pkalnai] Fork
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/ec6b4c4...pkalnai:master)
+
+## [v1.1 kevthehermit]
 
 **Closed issues:**
 
