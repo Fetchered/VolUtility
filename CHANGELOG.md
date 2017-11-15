@@ -1,8 +1,8 @@
 # Change Log
 
-Original Repo: https://github.com/kevthehermit/VolUtility
-Forked https://github.com/pkalnai/VolUtility on 7 Jan 2017
-I forked pkalnai's VolUtility and implimented changes from kevthehermit from 7 Jan to 15 Nov 2017
+- Original Repo: https://github.com/kevthehermit/VolUtility
+- Forked https://github.com/pkalnai/VolUtility on 7 Jan 2017
+- I forked pkalnai's VolUtility and implimented changes from kevthehermit from 7 Jan to 15 Nov 2017
 
 ## [Unreleased](https://github.com/AJMartel/VolUtility)
 
