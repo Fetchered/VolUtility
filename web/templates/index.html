@@ -1,10 +1,28 @@
 {% extends "base.html" %}
 {% load template_dict %}
-
 {% block title %}VolUI{% endblock %}
-
-
 {% block content %}
+
+{% if reqauth %}
+    <div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Authentication Required.</h3>
+    </div>
+    <div class="panel-body">
+        <p>The Administrator of the platform has enabled authentication.</p>
+            <form class="form-inline center-block" action="/login/" method="post">
+              <div class="form-group">
+                <input type="text" class="form-control" id="username" name="username" placeholder="UserName">
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+              </div>
+              <button type="submit" class="btn btn-default">Sign in</button>
+              {% csrf_token %}
+            </form>
+    </div>
+    </div>
+{%  else %}
 
     <!-- Search All -->
     <div class="panel panel-default">
@@ -64,7 +82,6 @@
     </table>
 </div>
 
-
 <div class="text-center">
     <nav>
         <ul class="pagination">
@@ -95,7 +112,8 @@
 
 {% include "add_session_modal.html" %}
 {% include "add_plugin_modal.html" %}
-<script type="text/javascript">
-  //setTimeout(function () { location.reload(true); }, 30000);
-</script>
+//<script type="text/javascript">
+//  setTimeout(function () { location.reload(true); }, 30000);
+//</script>
+{% endif %}
 {% endblock %}
