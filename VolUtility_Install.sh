@@ -4,18 +4,6 @@ sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y
 sudo apt-get -y install automake bison build-essential docker flex gcc git libjpeg8 libjpeg8-dev libmagic-dev libpcre++-dev libssl-dev libtool make pcregrep python-dev python-lxml python-pip python-socksipy python-urllib3 python-yara unzip 
 sudo -H pip install --upgrade pip
 
-#Install Yara
-wget https://github.com/VirusTotal/yara/archive/v3.5.0.tar.gz
-tar xvfz v3.5.0.tar.gz
-cd yara-3.5.0
-./bootstrap.sh
-./configure --with-crypto --enable-magic
-make
-sudo make install
-sudo make check
-cd ..
-sudo rm -rf yara-3.5.0
-
 #MongoDB Docker Install
 #sudo docker run -d -p 27017:27017 --name vol-mongo mongo
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
@@ -34,6 +22,9 @@ make
 sudo make install
 sudo make check
 cd ..
+
+#VirusTotal-api
+sudo pip install virustotal-api
 
 #Volatility Install
 git clone https://github.com/volatilityfoundation/volatility.git
