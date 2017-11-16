@@ -29,7 +29,7 @@ sudo python setup.py install
 cd ..
 
 #VolUtility Install
-git clone https://github.com/kevthehermit/VolUtility
+git clone https://github.com/AJMartel/VolUtility
 cd VolUtility
 sudo pip install -r requirements.txt
 sudo nohup python manage.py runserver 0.0.0.0:80 &
