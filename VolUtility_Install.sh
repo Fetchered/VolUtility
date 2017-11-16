@@ -24,7 +24,7 @@ sudo apt-get update
 sudo apt-get install -y mongodb-org
 sudo service mongod start
 
-#Volatility Install
+#Yara Install
 sudo -H pip install distorm3 pycrypto pillow ujson pyinstrument haystack pycoin simplejson pefile dpapick pysocks requests construct==2.5.5-reupload
 git clone https://github.com/VirusTotal/yara
 cd yara
@@ -34,7 +34,11 @@ make
 sudo make install
 sudo make check
 cd ..
-git clone https://github.com/volatilityfoundation/volatility
+
+#Volatility Install
+git clone https://github.com/volatilityfoundation/volatility.git
+git clone https://github.com/AJMartel/profiles.git
+rsync -a -r -v profiles/ volatility/
 cd volatility
 sudo python setup.py install
 cd ..
@@ -43,4 +47,4 @@ cd ..
 git clone https://github.com/AJMartel/VolUtility
 cd VolUtility
 sudo pip install -r requirements.txt
-sudo nohup python manage.py runserver 0.0.0.0:80 &
+sudo nohup python manage.py runserver 0.0.0.0:8000 &
